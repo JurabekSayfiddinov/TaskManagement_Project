@@ -1,11 +1,32 @@
-import { AppHeader } from "@/components/ui/layout/app-header";
-import { AppSidebar } from "@/components/ui/layout/app-sidebar";
+'use client';
 
-export default function MainLayout({
+import { useEffect, useState, type ReactNode } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
+import { AppHeader } from '@/components/ui/layout/app-header';
+import { AppSidebar } from '@/components/ui/layout/app-sidebar';
+
+export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
+  const router = useRouter();
+  const [allowed, setAllowed] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      setAllowed(true);
+    } else {
+      router.replace('/login');
+    }
+  }, [router]);
+
+  if (!allowed) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
@@ -14,6 +35,7 @@ export default function MainLayout({
         <AppHeader />
 
         <main className="p-8">
+          <Link href="/dashboard/profile">Profile</Link>
           {children}
         </main>
       </div>
