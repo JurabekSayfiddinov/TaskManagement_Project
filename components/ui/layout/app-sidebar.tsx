@@ -13,7 +13,7 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
-
+import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-switcher";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import getme from "@/app/(main)/profile/prof";
@@ -73,13 +73,7 @@ export function AppSidebar() {
           Workspace
         </p>
 
-        <button
-          type="button"
-          className="flex h-9 w-full items-center justify-between rounded-md border border-border bg-background px-3 text-sm hover:bg-muted"
-        >
-          <span>Acme Corp</span>
-          <ChevronDown className="size-4 text-muted-foreground" />
-        </button>
+      <WorkspaceSwitcher />
       </div>
 
       <div className="mt-6 px-4">
