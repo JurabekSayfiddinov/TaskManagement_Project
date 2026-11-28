@@ -8,7 +8,7 @@ import {
   ChevronRight,
   Plus,
 } from "lucide-react";
-
+import { useWorkspace } from "@/features/workspaces/context/workspace-context";
 const pageTitles: Record<string, string> = {
   dashboard: "Dashboard",
   "my-tasks": "My Tasks",
@@ -22,7 +22,7 @@ const pageTitles: Record<string, string> = {
 
 export function AppHeader() {
   const pathname = usePathname();
-
+const { workspace } = useWorkspace();
   const segment = pathname.split("/").filter(Boolean)[0];
 
   const title = pageTitles[segment] ?? "Workspace";
@@ -32,7 +32,7 @@ export function AppHeader() {
 
       <div className="flex items-center gap-2 text-sm">
         <span className="text-muted-foreground">
-          Acme Corp
+          {workspace?.name ?? " "}
         </span>
 
         <ChevronRight

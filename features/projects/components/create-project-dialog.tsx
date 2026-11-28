@@ -21,7 +21,7 @@ import {
 import type { CreateProjectDto } from "../types/project";
 
 interface Props {
-  onCreate: (data: CreateProjectDto) => void;
+  onCreate: (data: CreateProjectDto) => Promise<void>;
 }
 
 export function CreateProjectDialog({ onCreate }: Props) {
@@ -29,13 +29,22 @@ export function CreateProjectDialog({ onCreate }: Props) {
   const [name, setName] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [description, setDescription] = useState("");
+const [isPending, setIsPending] = useState(false);
+const [error, setError] = useState("");
+  async function handleSubmit(
+  e: React.FormEvent<HTMLFormElement>
+) {
+  e.preventDefault();
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  if (!name.trim() || !identifier || isPending) return;
 
-    onCreate({
+  setIsPending(true);
+  setError("");
+
+  try {
+    await onCreate({
       name: name.trim(),
-      identifier,
+      identifier: identifier.trim(),
       description: description.trim(),
     });
 
@@ -43,7 +52,16 @@ export function CreateProjectDialog({ onCreate }: Props) {
     setIdentifier("");
     setDescription("");
     setOpen(false);
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to create project."
+    );
+  } finally {
+    setIsPending(false);
   }
+}
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -163,12 +181,17 @@ export function CreateProjectDialog({ onCreate }: Props) {
               Cancel
             </Button>
 
-            <Button
-              type="submit"
-              disabled={!name.trim() || !identifier}
-            >
-              Create Project
-            </Button>
+          <Button
+  type="submit"
+  disabled={!name.trim() || !identifier || isPending}
+>
+  {isPending ? "Creating..." : "Create Project"}
+</Button>
+            {error && (
+  <p className="text-sm text-red-600">
+    {error}
+  </p>
+)}
           </DialogFooter>
         </form>
       </DialogContent>
