@@ -46,12 +46,20 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        <Link
-          href="/profile/editme"
-          className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50"
-        >
-          Edit profile
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/profile/editme"
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50"
+          >
+            Edit profile
+          </Link>
+          <Link
+            href="/profile/change-password"
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50"
+          >
+            Change password
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-2xl">

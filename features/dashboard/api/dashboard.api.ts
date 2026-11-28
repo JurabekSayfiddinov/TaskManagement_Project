@@ -1,4 +1,3 @@
-
 import { api } from "@/lib/api";
 
 import type {
@@ -16,15 +15,13 @@ export async function getCurrentUser() {
 }
 
 export async function getWorkspaces() {
-  const { data } =
-    await api.get<DashboardWorkspace[]>("/workspaces/");
-
+  const { data } = await api.get<DashboardWorkspace[]>("/workspaces/");
   return data;
 }
 
 export async function getProjects(workspaceSlug: string) {
   const { data } = await api.get<DashboardProject[]>(
-    `/workspaces/${workspaceSlug}/projects/`
+    `/workspaces/${workspaceSlug}/projects/`,
   );
 
   return data;
@@ -32,10 +29,10 @@ export async function getProjects(workspaceSlug: string) {
 
 export async function getProjectStates(
   workspaceSlug: string,
-  projectId: string
+  projectId: string,
 ) {
   const { data } = await api.get<DashboardState[]>(
-    `/workspaces/${workspaceSlug}/projects/${projectId}/states/`
+    `/workspaces/${workspaceSlug}/projects/${projectId}/states/`,
   );
 
   return data;
@@ -44,41 +41,34 @@ export async function getProjectStates(
 export async function getProjectTasks(
   workspaceSlug: string,
   projectId: string,
-  userId?: string
+  userId?: string,
 ) {
   const tasks: DashboardTask[] = [];
-
   let cursor: string | undefined;
 
   do {
-    const { data } = await api.get<
-      PaginatedResponse<DashboardTask>
-    >(
+    const { data } = await api.get<PaginatedResponse<DashboardTask>>(
       `/workspaces/${workspaceSlug}/projects/${projectId}/issues/`,
       {
         params: {
           limit: 100,
-          assignee: userId,
+          assignee: userId ? [userId, userId] : undefined,
           cursor,
         },
-      }
+        paramsSerializer: { indexes: null },
+      },
     );
 
     tasks.push(...data.data);
-
     cursor = data.next_cursor ?? undefined;
   } while (cursor);
 
   return tasks;
 }
 
-export async function getUnreadNotifications(
-  workspaceSlug: string
-) {
-  const { data } = await api.get<{
-    unread_count: number;
-  }>(
-    `/workspaces/${workspaceSlug}/notifications/`
+export async function getUnreadNotifications(workspaceSlug: string) {
+  const { data } = await api.get<{ unread_count: number }>(
+    `/workspaces/${workspaceSlug}/notifications/`,
   );
 
   return data.unread_count;
