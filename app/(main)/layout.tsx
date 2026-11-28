@@ -1,11 +1,13 @@
-'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+"use client";
 
-import { AppHeader } from '@/components/ui/layout/app-header';
-import { AppSidebar } from '@/components/ui/layout/app-sidebar';
+import { useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+
+import { AppHeader } from "@/components/ui/layout/app-header";
+import { AppSidebar } from "@/components/ui/layout/app-sidebar";
+
+import { WorkspaceProvider } from "@/features/workspaces/context/workspace-context";
 
 export default function DashboardLayout({
   children,
@@ -16,10 +18,10 @@ export default function DashboardLayout({
   const [allowed, setAllowed] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem('token')) {
+    if (localStorage.getItem("token")) {
       setAllowed(true);
     } else {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [router]);
 
@@ -28,17 +30,18 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <AppSidebar />
+    <WorkspaceProvider>
+      <div className="min-h-screen bg-background">
+        <AppSidebar />
 
-      <div className="ml-60 min-h-screen">
-        <AppHeader />
+        <div className="ml-60 min-h-screen">
+          <AppHeader />
 
-        <main className="p-8">
-          <Link href="/profile">Profile</Link>
-          {children}
-        </main>
+          <main className="p-8">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </WorkspaceProvider>
   );
 }

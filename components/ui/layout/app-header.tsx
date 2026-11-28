@@ -3,10 +3,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import {
   Bell,
+  ChevronRight,
   Plus,
 } from "lucide-react";
+
+import { useWorkspace } from "@/features/workspaces/context/workspace-context";
 
 const pageTitles: Record<string, string> = {
   dashboard: "Dashboard",
@@ -15,10 +19,13 @@ const pageTitles: Record<string, string> = {
   profile: "Profile",
   members: "Members",
   tasks: "Tasks",
+  projects: "Projects",
+  workspaces: "Workspaces",
 };
 
 export function AppHeader() {
   const pathname = usePathname();
+  const { workspace } = useWorkspace();
 
   const segment = pathname.split("/").filter(Boolean)[0];
 
@@ -26,8 +33,16 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card px-6">
-
       <div className="flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">
+          {workspace?.name ?? "No workspace"}
+        </span>
+
+        <ChevronRight
+          size={14}
+          className="text-muted-foreground"
+        />
+
         <span className="font-medium">
           {title}
         </span>

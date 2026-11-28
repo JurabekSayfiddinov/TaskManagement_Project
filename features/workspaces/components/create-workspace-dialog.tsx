@@ -19,23 +19,44 @@ import {
 import type { CreateWorkspaceDto } from "../types/workspace";
 
 interface Props {
-  onCreate: (data: CreateWorkspaceDto) => void;
+  onCreate: (data: CreateWorkspaceDto) => Promise<void>;
 }
 
 export function CreateWorkspaceDialog({ onCreate }: Props) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
+const [isPending, setIsPending] = useState(false);
+const [error, setError] = useState("");
+ async function handleSubmit(
+  e: React.FormEvent<HTMLFormElement>
+) {
+  e.preventDefault();
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  if (isPending) return;
 
-    onCreate({ name: name.trim(), slug });
+  setError("");
+  setIsPending(true);
+
+  try {
+    await onCreate({
+      name: name.trim(),
+      slug: slug.trim(),
+    });
 
     setName("");
     setSlug("");
     setOpen(false);
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : "Failed to create workspace."
+    );
+  } finally {
+    setIsPending(false);
   }
+}
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -126,10 +147,17 @@ export function CreateWorkspaceDialog({ onCreate }: Props) {
             >
               Cancel
             </Button>
-
-            <Button type="submit" disabled={!name.trim()}>
-              Create Workspace
-            </Button>
+<Button
+  type="submit"
+  disabled={!name.trim() || !slug.trim() || isPending}
+>
+  {isPending ? "Creating..." : "Create Workspace"}
+</Button>
+            {error && (
+  <p className="text-sm text-red-600">
+    {error}
+  </p>
+)}
           </DialogFooter>
         </form>
       </DialogContent>

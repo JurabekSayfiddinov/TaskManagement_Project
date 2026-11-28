@@ -16,3 +16,10 @@ export interface CreateProjectDto {
   description?: string;
   lead_id?: string | null;
 }
+
+export interface UpdateProjectDto {
+  name?: string;
+  description?: string | null;
+  lead_id?: string | null;
+  is_archived?: boolean;
+}
