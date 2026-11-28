@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 
 import { useWorkspace } from "@/features/workspaces/context/workspace-context";
+import { useQuery } from "@tanstack/react-query";
+import getme from "@/app/(main)/profile/prof";
 
 const pageTitles: Record<string, string> = {
   dashboard: "Dashboard",
@@ -24,6 +26,10 @@ const pageTitles: Record<string, string> = {
 };
 
 export function AppHeader() {
+    const { data } = useQuery({
+      queryKey: ['profile'],
+      queryFn: getme,
+    });
   const pathname = usePathname();
   const { workspace } = useWorkspace();
 
@@ -64,7 +70,7 @@ export function AppHeader() {
           aria-label="Profile"
           className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-medium text-primary"
         >
-          AM
+          {data?.display_name.charAt(0).toUpperCase()}
         </Link>
 
         <Link

@@ -1,93 +1,66 @@
-
 "use client";
 
 import { useState } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Bell, Check, CheckCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { useWorkspace } from "@/features/workspaces/context/workspace-context";
 
-import { NotificationItem } from
-  "@/features/notifications/components/notification-item";
+import { getNotifications, markAllAsRead, markAsRead } from "./notapi";
 
-import type { Notification } from
-  "@/features/notifications/types/notification";
-
-const initialNotifications: Notification[] = [
-  {
-    id: "1",
-    type: "assignment",
-    title: "New task assigned",
-    message: "You have been assigned task WEB-104.",
-    is_read: false,
-    created_at: "2026-11-27T10:30:00Z",
-  },
-  {
-    id: "2",
-    type: "comment",
-    title: "New comment on your task",
-    message: "Alex Morgan commented on your task.",
-    is_read: false,
-    created_at: "2026-11-27T09:20:00Z",
-  },
-  {
-    id: "3",
-    type: "status",
-    title: "Task status updated",
-    message: "WEB-102 has been moved to In Progress.",
-    is_read: false,
-    created_at: "2026-11-27T08:10:00Z",
-  },
-  {
-    id: "4",
-    type: "mention",
-    title: "You were mentioned",
-    message: "A teammate mentioned you in a comment.",
-    is_read: true,
-    created_at: "2026-11-26T12:00:00Z",
-  },
-];
+type NotificationRow = {
+  id: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+  actor: { display_name: string } | null;
+};
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] =
-    useState<Notification[]>(initialNotifications);
+  const { workspaceSlug, isPending, isError } = useWorkspace();
 
-  const [filter, setFilter] =
-    useState<"all" | "unread">("all");
+  if (isPending) return <p>Loading workspaces…</p>;
+  if (isError) return <p role="alert">Could not load workspaces.</p>;
+  if (!workspaceSlug) return <p>Select a workspace to see notifications.</p>;
 
-  const unreadCount = notifications.filter(
-    (notification) => !notification.is_read
-  ).length;
+  return (
+    <WorkspaceNotifications key={workspaceSlug} workspaceSlug={workspaceSlug} />
+  );
+}
 
-  function handleMarkAsRead(id: string) {
-    setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id
-          ? { ...notification, is_read: true }
-          : notification
-      )
-    );
+function WorkspaceNotifications({ workspaceSlug }: { workspaceSlug: string }) {
+  const [unreadOnly, setUnreadOnly] = useState(false);
+
+  const queryClient = useQueryClient();
+  const queryKey = ["notifications", workspaceSlug];
+
+  const notifications = useQuery({
+    queryKey: [...queryKey, unreadOnly],
+    queryFn: () => getNotifications(workspaceSlug, unreadOnly),
+  });
+
+  function refreshNotifications() {
+    return queryClient.invalidateQueries({ queryKey });
   }
 
-  function handleMarkAllAsRead() {
-    setNotifications((prev) =>
-      prev.map((notification) => ({
-        ...notification,
-        is_read: true,
-      }))
-    );
-  }
+  const readOne = useMutation({
+    mutationFn: (id: string) => markAsRead(workspaceSlug, id),
+    onSuccess: refreshNotifications,
+  });
 
-  const filteredNotifications =
-    filter === "unread"
-      ? notifications.filter(
-          (notification) => !notification.is_read
-        )
-      : notifications;
+  const readAll = useMutation({
+    mutationFn: () => markAllAsRead(workspaceSlug),
+    onSuccess: refreshNotifications,
+  });
+
+  const items: NotificationRow[] = notifications.data?.data ?? [];
+  const unreadCount = notifications.data?.unread_count ?? 0;
+  const saving = readOne.isPending || readAll.isPending;
 
   return (
     <div className="space-y-6">
-      {/* Heading */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">
@@ -107,37 +80,43 @@ export default function NotificationsPage() {
         </div>
 
         <Button
+          type="button"
           variant="outline"
-          disabled={unreadCount === 0}
-          onClick={handleMarkAllAsRead}
+          disabled={saving || unreadCount === 0}
+          onClick={() => readAll.mutate()}
         >
           <CheckCheck size={16} />
-          Mark all as read
+          {readAll.isPending ? "Saving…" : "Mark all as read"}
         </Button>
-      </div>
+      </header>
 
-      {/* Notifications panel */}
-      <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+      {(readOne.isError || readAll.isError) && (
+        <p role="alert" className="text-sm text-destructive">
+          Could not mark notifications as read. Please try again.
+        </p>
+      )}
 
-        {/* Filters */}
+      <section className="overflow-hidden rounded-xl border bg-card shadow-xs">
         <div className="flex gap-6 border-b px-5">
           <button
             type="button"
-            onClick={() => setFilter("all")}
+            aria-pressed={!unreadOnly}
+            onClick={() => setUnreadOnly(false)}
             className={`border-b-2 py-4 text-sm font-medium ${
-              filter === "all"
+              !unreadOnly
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground"
             }`}
           >
-            All ({notifications.length})
+            All
           </button>
 
           <button
             type="button"
-            onClick={() => setFilter("unread")}
+            aria-pressed={unreadOnly}
+            onClick={() => setUnreadOnly(true)}
             className={`border-b-2 py-4 text-sm font-medium ${
-              filter === "unread"
+              unreadOnly
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground"
             }`}
@@ -146,31 +125,65 @@ export default function NotificationsPage() {
           </button>
         </div>
 
-        {/* Notification list */}
-        {filteredNotifications.length === 0 ? (
-          <div className="flex min-h-64 flex-col items-center justify-center p-8 text-center">
-            <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-accent text-primary">
-              <Bell size={28} />
-            </div>
-
-            <h2 className="font-semibold">
-              No notifications
-            </h2>
-
-            <p className="mt-2 text-sm text-muted-foreground">
-              You're all caught up!
-            </p>
+        {notifications.isPending ? (
+          <p role="status" className="p-5">Loading notifications…</p>
+        ) : notifications.isError ? (
+          <div className="space-y-3 p-5">
+            <p role="alert">Could not load notifications.</p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => notifications.refetch()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
+            <Bell className="text-primary" size={28} />
+            <p>{unreadOnly ? "No unread notifications." : "No notifications yet."}</p>
           </div>
         ) : (
-          filteredNotifications.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onRead={handleMarkAsRead}
-            />
-          ))
+          <ul className="divide-y">
+            {items.map((item) => (
+              <li
+                key={item.id}
+                className={`flex items-start gap-4 p-5 ${
+                  item.is_read ? "bg-card" : "bg-accent/40"
+                }`}
+              >
+                <div className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-primary">
+                  <Bell size={18} />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-sm font-semibold capitalize">
+                    {item.type.replaceAll("_", " ")}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {item.actor?.display_name ?? "Someone"}
+                  </p>
+                  <time dateTime={item.created_at} className="mt-2 block text-xs text-muted-foreground">
+                    {new Date(item.created_at).toLocaleString()}
+                  </time>
+                </div>
+
+                {!item.is_read && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={saving}
+                    onClick={() => readOne.mutate(item.id)}
+                  >
+                    <Check size={16} />
+                    Mark as read
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
         )}
-      </div>
+      </section>
     </div>
   );
 }
