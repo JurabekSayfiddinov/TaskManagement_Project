@@ -6,14 +6,13 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-
 import {
   getMembers,
   inviteMember,
   updateMember,
   deleteMember,
+  acceptInvitation,
 } from "../api/member.api";
-
 import type {
   InviteMemberDto,
   UpdateMemberDto,
@@ -100,6 +99,29 @@ export function useDeleteMember(workspaceSlug?: string) {
         }),
         queryClient.invalidateQueries({
           queryKey: ["workspaces"],
+        }),
+      ]);
+    },
+  });
+}
+
+export function useAcceptInvitation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (token: string) =>
+      acceptInvitation(token),
+
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["workspaces"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["members"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["dashboard"],
         }),
       ]);
     },
