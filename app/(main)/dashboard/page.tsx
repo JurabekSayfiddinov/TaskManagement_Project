@@ -14,7 +14,7 @@ const stats = [
   {
     title: "My Total Tasks",
     value: 14,
-    description: "Across 3 active projects",
+    description: "Tasks assigned to you",
     icon: Layers,
     color: "bg-indigo-50 text-indigo-600",
   },
@@ -96,30 +96,6 @@ const recentTasks = [
   },
 ];
 
-const projects = [
-  {
-    name: "Web Platform",
-    identifier: "WEB",
-    lead: "Priya Nair",
-    tasks: 7,
-    progress: 42,
-  },
-  {
-    name: "Employee Portal",
-    identifier: "EMP",
-    lead: "Alex Morgan",
-    tasks: 4,
-    progress: 65,
-  },
-  {
-    name: "Operations & IT",
-    identifier: "OPS",
-    lead: "Marcus Vance",
-    tasks: 3,
-    progress: 30,
-  },
-];
-
 const priorityStyles: Record<string, string> = {
   Urgent: "bg-red-100 text-red-700",
   High: "bg-orange-100 text-orange-700",
@@ -182,10 +158,6 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight">
             Welcome back, Jurabek
           </h1>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            Workspace: Acme Corp · Friday, Nov 27, 2026
-          </p>
         </div>
 
         <Link
@@ -284,8 +256,8 @@ export default function DashboardPage() {
       </section>
 
      
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs xl:col-span-2">
+      <section>
+        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
           <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
             <h2 className="text-sm font-semibold">
               Recently updated tasks
@@ -327,56 +299,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
- 
-        <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
-          <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-3">
-            <h2 className="text-sm font-semibold">
-              Project overview
-            </h2>
-
-            <Link
-              href="/projects"
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              All projects
-            </Link>
-          </div>
-
-          {projects.map((project) => (
-            <div
-              key={project.identifier}
-              className="space-y-2 border-b border-border p-4 last:border-b-0"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">
-                  {project.name}
-                </p>
-
-                <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
-                  {project.identifier}
-                </span>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                Lead: {project.lead} · {project.tasks} tasks
-              </p>
-
-              <div
-                role="progressbar"
-                aria-label={project.name}
-                aria-valuenow={project.progress}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                className="h-1.5 overflow-hidden rounded-full bg-muted"
-              >
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${project.progress}%` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
       </section>
     </div>
   );

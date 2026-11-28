@@ -29,7 +29,7 @@ export default function ProfilePage() {
           Profile
         </h1>
         <p className="mt-2 text-sm text-slate-600">
-          Your account and workspace membership.
+          Your account details.
         </p>
       </header>
 
@@ -46,11 +46,15 @@ export default function ProfilePage() {
           </p>
         </div>
 
-        <span className="rounded-full bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700">
-        </span>
+        <Link
+          href="/profile/editme"
+          className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium hover:bg-slate-50"
+        >
+          Edit profile
+        </Link>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="max-w-2xl">
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <h2 className="border-b border-slate-200 bg-slate-50 px-5 py-4 font-semibold">
             Account details
@@ -65,22 +69,6 @@ export default function ProfilePage() {
             <div className="grid gap-1 px-5 py-4 sm:grid-cols-2 sm:gap-4">
               <dt className="text-sm text-slate-600">Username</dt>
               <dd className="break-words text-sm font-medium">@{data?.email}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <h2 className="border-b border-slate-200 bg-slate-50 px-5 py-4 font-semibold">
-            Workspace
-          </h2>
-
-          <dl className="divide-y divide-slate-200">
-            <div className="grid gap-1 px-5 py-4 sm:grid-cols-2 sm:gap-4">
-              <dt className="text-sm text-slate-600">Workspace name</dt>
-            </div>
-
-            <div className="grid gap-1 px-5 py-4 sm:grid-cols-2 sm:gap-4">
-              <dt className="text-sm text-slate-600">Role</dt>
             </div>
           </dl>
         </section>

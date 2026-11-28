@@ -35,7 +35,7 @@ export default function DashboardLayout({
         <AppHeader />
 
         <main className="p-8">
-          <Link href="/dashboard/profile">Profile</Link>
+          <Link href="/profile">Profile</Link>
           {children}
         </main>
       </div>

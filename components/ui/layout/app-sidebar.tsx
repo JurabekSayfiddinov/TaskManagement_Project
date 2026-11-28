@@ -7,11 +7,9 @@ import {
   SquareCheckBig,
   LayoutDashboard,
   CircleCheck,
-  FolderKanban,
   Bell,
   UserRound,
   LogOut,
-  ChevronDown,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -30,11 +28,6 @@ const navigation = [
     icon: CircleCheck,
   },
   {
-    title: "Projects",
-    href: "/projects",
-    icon: FolderKanban,
-  },
-  {
     title: "Notifications",
     href: "/notifications",
     icon: Bell,
@@ -48,7 +41,7 @@ export function AppSidebar() {
         queryKey:['profile']
     })
   const pathname = usePathname();
- let router=useRouter()
+  const router = useRouter();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-border bg-sidebar">
@@ -66,20 +59,6 @@ export function AppSidebar() {
             Task Management
           </span>
         </Link>
-      </div>
-
-      <div className="px-4 pt-2">
-        <p className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-          Workspace
-        </p>
-
-        <button
-          type="button"
-          className="flex h-9 w-full items-center justify-between rounded-md border border-border bg-background px-3 text-sm hover:bg-muted"
-        >
-          <span>Acme Corp</span>
-          <ChevronDown className="size-4 text-muted-foreground" />
-        </button>
       </div>
 
       <div className="mt-6 px-4">
@@ -130,10 +109,6 @@ export function AppSidebar() {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">
              {data?.display_name}
-            </p>
-
-            <p className="text-xs text-muted-foreground">
-              Workspace Member
             </p>
           </div>
         </div>

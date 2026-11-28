@@ -1,45 +1,5 @@
+import { redirect } from "next/navigation";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
-import { StateManagement } from
-  "@/features/states/components/state-management";
-
-import { LabelManagement } from
-  "@/features/labels/components/label-management";
-
-interface Props {
-  params: Promise<{ projectId: string }>;
-}
-
-export default async function ProjectSettingsPage({
-  params,
-}: Props) {
-  const { projectId } = await params;
-
-  return (
-    <div className="space-y-6">
-      <Link
-        href="/projects"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-      >
-        <ArrowLeft size={16} />
-        Back to Projects
-      </Link>
-
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Project Settings
-        </h1>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage project workflow and task labels.
-        </p>
-      </div>
-
-      <StateManagement key={`states-${projectId}`} />
-
-      <LabelManagement key={`labels-${projectId}`} />
-    </div>
-  );
+export default function ProjectSettingsPage() {
+  redirect("/profile");
 }

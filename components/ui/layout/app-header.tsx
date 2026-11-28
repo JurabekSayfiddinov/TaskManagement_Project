@@ -5,17 +5,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Bell,
-  ChevronRight,
   Plus,
 } from "lucide-react";
 
 const pageTitles: Record<string, string> = {
   dashboard: "Dashboard",
   "my-tasks": "My Tasks",
-  projects: "Projects",
   notifications: "Notifications",
   profile: "Profile",
-  workspaces: "Workspaces",
   members: "Members",
   tasks: "Tasks",
 };
@@ -25,21 +22,12 @@ export function AppHeader() {
 
   const segment = pathname.split("/").filter(Boolean)[0];
 
-  const title = pageTitles[segment] ?? "Workspace";
+  const title = pageTitles[segment] ?? "Task Management";
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-card px-6">
 
       <div className="flex items-center gap-2 text-sm">
-        <span className="text-muted-foreground">
-          Acme Corp
-        </span>
-
-        <ChevronRight
-          size={14}
-          className="text-muted-foreground"
-        />
-
         <span className="font-medium">
           {title}
         </span>
