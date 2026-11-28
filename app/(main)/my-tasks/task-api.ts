@@ -1,9 +1,7 @@
 import axios from "axios";
+import { api } from "@/lib/api";
 import type { Project } from "@/features/projects/types/project";
 import type { Workspace } from "@/features/workspaces/types/workspace";
-import { profileHeaders } from "../profile/prof";
-
-const api = "http://127.0.0.1:3000/api/v1";
 
 export interface TaskInput {
   title: string;
@@ -40,39 +38,52 @@ export interface TaskList {
 }
 
 function projectsUrl(workspace: string) {
-  return `${api}/workspaces/${encodeURIComponent(workspace)}/projects/`;
+  return `/workspaces/${encodeURIComponent(workspace)}/projects/`;
 }
 
 function projectUrl(workspace: string, project: string) {
   return projectsUrl(workspace) + encodeURIComponent(project);
 }
 
-function issuesUrl(workspace: string, project: string) {
+export function issuesUrl(workspace: string, project: string) {
   return `${projectUrl(workspace, project)}/issues/`;
 }
 
 export async function getWorkspaces() {
-  const { data } = await axios.get<Workspace[]>(`${api}/workspaces/`, { headers: profileHeaders() });
+  const { data } = await api.get<Workspace[]>("/workspaces/");
   return data;
 }
 
 export async function getProjects(workspace: string) {
-  const { data } = await axios.get<Project[]>(projectsUrl(workspace), { headers: profileHeaders() });
+  const { data } = await api.get<Project[]>(projectsUrl(workspace));
   return data;
 }
 
 export async function getTaskStates(workspace: string, project: string) {
-  const { data } = await axios.get<TaskState[]>(`${projectUrl(workspace, project)}/states/`, {
-    headers: profileHeaders(),
-  });
+  const { data } = await api.get<TaskState[]>(`${projectUrl(workspace, project)}/states/`);
   return data;
 }
 
-export async function getTasks(workspace: string, project: string, assignee?: string, cursor?: string) {
-  const { data } = await axios.get<TaskList>(issuesUrl(workspace, project), {
-    headers: profileHeaders(),
-    // Fastify rejects a single value here. Two identical IDs still filter one user.
-    params: { assignee: assignee ? [assignee, assignee] : undefined, cursor },
+function filterValues(value?: string) {
+  // Fastify accepts these filters as arrays. Repeating a value keeps one filter choice.
+  return value ? [value, value] : undefined;
+}
+
+export async function getTasks(
+  workspace: string,
+  project: string,
+  assignee?: string,
+  cursor?: string,
+  filters: { search?: string; state?: string; priority?: string } = {},
+) {
+  const { data } = await api.get<TaskList>(issuesUrl(workspace, project), {
+    params: {
+      assignee: filterValues(assignee),
+      cursor,
+      search: filters.search?.trim() || undefined,
+      state: filterValues(filters.state),
+      priority: filterValues(filters.priority),
+    },
     paramsSerializer: { indexes: null },
   });
   return data;
@@ -80,36 +91,32 @@ export async function getTasks(workspace: string, project: string, assignee?: st
 
 export async function createTask(workspace: string, project: string, task: TaskInput, assignee?: string) {
   const payload = { ...task, assignee_ids: assignee ? [assignee] : undefined };
-  const { data } = await axios.post<Task>(issuesUrl(workspace, project), payload, {
-    headers: profileHeaders(),
-  });
+  const { data } = await api.post<Task>(issuesUrl(workspace, project), payload);
   return data;
 }
 
 export async function getTask(workspace: string, project: string, taskId: string) {
   const url = issuesUrl(workspace, project) + encodeURIComponent(taskId);
-  const { data } = await axios.get<Task>(url, { headers: profileHeaders() });
+  const { data } = await api.get<Task>(url);
   return data;
 }
 
 export async function updateTask(workspace: string, project: string, taskId: string, task: TaskInput) {
   const url = issuesUrl(workspace, project) + encodeURIComponent(taskId);
   const payload = { ...task, description: task.description || null };
-  const { data } = await axios.patch<Task>(url, payload, { headers: profileHeaders() });
+  const { data } = await api.patch<Task>(url, payload);
   return data;
 }
 
 export async function moveTask(workspace: string, project: string, taskId: string, stateId: string) {
   const url = issuesUrl(workspace, project) + encodeURIComponent(taskId);
-  const { data } = await axios.patch<Task>(url, { state_id: stateId }, {
-    headers: profileHeaders(),
-  });
+  const { data } = await api.patch<Task>(url, { state_id: stateId });
   return data;
 }
 
 export async function deleteTask(workspace: string, project: string, taskId: string) {
   const url = issuesUrl(workspace, project) + encodeURIComponent(taskId);
-  await axios.delete(url, { headers: profileHeaders() });
+  await api.delete(url);
 }
 
 export function taskError(error: unknown, fallback: string) {

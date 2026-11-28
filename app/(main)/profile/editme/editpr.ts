@@ -1,10 +1,8 @@
-import axios from "axios";
-import { profileHeaders, profileUrl as api, type Profile } from "../prof";
+import { api } from "@/lib/api";
+import { profileUrl, type Profile } from "../prof";
 
 async function editme(user: { display_name: string }) {
-  const { data } = await axios.patch<Profile>(api, user, {
-    headers: profileHeaders(),
-  });
+  const { data } = await api.patch<Profile>(profileUrl, user);
 
   return data;
 }

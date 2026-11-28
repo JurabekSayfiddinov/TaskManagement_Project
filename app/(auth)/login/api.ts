@@ -1,21 +1,20 @@
 import axios from "axios";
+import { saveSession } from "@/lib/api";
 
-let api="http://127.0.0.1:3000/api/v1/auth/login"
+const api = "http://127.0.0.1:3000/api/v1/auth/login";
 
-async function loginreq(user:any) {
-    try {
-        let {data}=await axios.post(api,user)
-        let token=data.access_token
-        console.log(data);
-        console.log(token);
-          if(token){
+async function loginreq(user: { email: string; password: string }) {
+  try {
+    const { data } = await axios.post(api, user);
+    const token = data.access_token;
 
-        localStorage.setItem("token",token)
+    if (token && data.refresh_token) {
+      saveSession(token, data.refresh_token);
+      return token;
     }
-    return token
-    } catch (error) {
-        console.error(error);
-        
-    }
+  } catch {
+    console.error("Login failed.");
+  }
 }
-export default loginreq
+
+export default loginreq;

@@ -1,16 +1,12 @@
-import axios from "axios";
-import { profileHeaders } from "../profile/prof";
-
-const api = "http://127.0.0.1:3000/api/v1/workspaces";
+import { api } from "@/lib/api";
 
 export async function getNotifications(
   workspaceSlug: string,
   unreadOnly = false,
 ) {
-  const { data } = await axios.get(
-    `${api}/${workspaceSlug}/notifications/`,
+  const { data } = await api.get(
+    `/workspaces/${encodeURIComponent(workspaceSlug)}/notifications/`,
     {
-      headers: profileHeaders(),
       params: unreadOnly ? { read: "false" } : undefined,
     },
   );
@@ -19,17 +15,9 @@ export async function getNotifications(
 }
 
 export async function markAsRead(workspaceSlug: string, id: string) {
-  await axios.post(
-    `${api}/${workspaceSlug}/notifications/${id}/read`,
-    undefined,
-    { headers: profileHeaders() },
-  );
+  await api.post(`/workspaces/${encodeURIComponent(workspaceSlug)}/notifications/${encodeURIComponent(id)}/read`);
 }
 
 export async function markAllAsRead(workspaceSlug: string) {
-  await axios.post(
-    `${api}/${workspaceSlug}/notifications/read-all`,
-    undefined,
-    { headers: profileHeaders() },
-  );
+  await api.post(`/workspaces/${encodeURIComponent(workspaceSlug)}/notifications/read-all`);
 }

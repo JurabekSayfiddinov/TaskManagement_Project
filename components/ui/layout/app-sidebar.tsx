@@ -17,6 +17,7 @@ import {
 
 import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-switcher"
 import { cn } from "@/lib/utils"
+import { logoutSession } from "@/lib/api"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import getme from "@/app/(main)/profile/prof"
 
@@ -64,8 +65,7 @@ export function AppSidebar() {
    const queryClient = useQueryClient()
 
    function handleLogout() {
-      localStorage.removeItem("token")
-      localStorage.removeItem("workspaceSlug")
+      logoutSession()
 
       queryClient.clear()
 

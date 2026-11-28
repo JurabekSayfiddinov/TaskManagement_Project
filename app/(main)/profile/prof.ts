@@ -1,4 +1,4 @@
-import axios from "axios";
+import { api } from "@/lib/api";
 
 export interface Profile {
   id: string;
@@ -10,19 +10,10 @@ export interface Profile {
   updated_at: string;
 }
 
-export const profileUrl = "http://127.0.0.1:3000/api/v1/auth/me";
-
-export function profileHeaders() {
-  const token = localStorage.getItem("token");
-
-
-  return { Authorization: `Bearer ${token}` };
-}
+export const profileUrl = "/auth/me";
 
 export default async function getme() {
-  const { data } = await axios.get<Profile>(profileUrl, {
-    headers: profileHeaders(),
-  });
+  const { data } = await api.get<Profile>(profileUrl);
 
   return data;
 }

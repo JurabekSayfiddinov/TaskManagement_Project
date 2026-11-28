@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, Columns3, List, Plus, X } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Columns3, List, Plus, Search, X } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,10 +16,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { Project } from "@/features/projects/types/project";
 import getme from "../profile/prof";
 import { deleteTask, getTask, getTasks, getTaskStates, moveTask, taskError, type TaskList } from "./task-api";
 import { TaskBoard } from "./task-board";
+import { TaskComments } from "./task-comments";
 import { TaskForm } from "./task-form";
 
 interface Props {
@@ -33,6 +35,10 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
   const [mineOnly, setMineOnly] = useState(true);
   const [showBoard, setShowBoard] = useState(false);
   const [cursors, setCursors] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState("");
+  const [search, setSearch] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
   const [taskId, setTaskId] = useState(initialTask);
   const [editing, setEditing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -40,10 +46,12 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
   const assignee = mineOnly ? profile.data?.id : undefined;
   const cursor = cursors.at(-1);
   const taskListKey = ["tasks", workspace, project.id];
+  const filters = { search, state: stateFilter, priority: priorityFilter };
+  const listQueryKey = [...taskListKey, assignee, cursor, filters];
   const detailKey = ["task", workspace, project.id, taskId];
   const tasks = useQuery({
-    queryKey: [...taskListKey, assignee, cursor],
-    queryFn: () => getTasks(workspace, project.id, assignee, cursor),
+    queryKey: listQueryKey,
+    queryFn: () => getTasks(workspace, project.id, assignee, cursor, filters),
     enabled: !mineOnly || Boolean(assignee),
   });
   const selected = useQuery({
@@ -63,11 +71,12 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
       await queryClient.cancelQueries({ queryKey: key });
       await queryClient.cancelQueries({ queryKey: taskListKey });
       queryClient.setQueryData(key, updatedTask);
-      queryClient.setQueriesData<TaskList>({ queryKey: taskListKey }, (page) => {
+      queryClient.setQueryData<TaskList>(listQueryKey, (page) => {
         if (!page) return page;
+        const data = page.data.map((task) => task.id === updatedTask.id ? updatedTask : task);
         return {
           ...page,
-          data: page.data.map((task) => task.id === updatedTask.id ? updatedTask : task),
+          data: stateFilter ? data.filter((task) => task.state_id === stateFilter) : data,
         };
       });
       return queryClient.invalidateQueries({ queryKey: taskListKey });
@@ -88,6 +97,21 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
   const current = selected.isError ? undefined : selected.data;
   const taskCount = tasks.data?.data.length;
   const taskScope = mineOnly ? "Assigned to me" : "All project tasks";
+  const hasFilters = Boolean(search || stateFilter || priorityFilter);
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSearch(searchText.trim());
+    setCursors([]);
+  }
+
+  function clearFilters() {
+    setSearchText("");
+    setSearch("");
+    setStateFilter("");
+    setPriorityFilter("");
+    setCursors([]);
+  }
 
   function openTask(id: string) {
     setDeleteOpen(false);
@@ -129,6 +153,67 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
         </Link>
       </div>
 
+      <form onSubmit={handleSearch} className="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-3">
+        <div className="min-w-0 flex-[1_1_16rem] space-y-1">
+          <label htmlFor="task-search" className="text-sm font-medium">Search tasks</label>
+          <div className="flex gap-2">
+            <Input
+              id="task-search"
+              type="search"
+              placeholder="Title or description"
+              value={searchText}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSearchText(value);
+                if (!value) {
+                  setSearch("");
+                  setCursors([]);
+                }
+              }}
+            />
+            <Button type="submit" variant="outline">
+              <Search aria-hidden="true" size={16} />
+              Search
+            </Button>
+          </div>
+        </div>
+        <label className="min-w-36 flex-1 space-y-1 text-sm font-medium sm:flex-none">
+          <span>Status</span>
+          <select
+            value={stateFilter}
+            onChange={(event) => {
+              setStateFilter(event.target.value);
+              setCursors([]);
+            }}
+            className="block h-9 w-full rounded-lg border bg-card px-2"
+          >
+            <option value="">All statuses</option>
+            {states.data?.map((state) => (
+              <option key={state.id} value={state.id}>{state.name}</option>
+            ))}
+          </select>
+        </label>
+        <label className="min-w-36 flex-1 space-y-1 text-sm font-medium sm:flex-none">
+          <span>Priority</span>
+          <select
+            value={priorityFilter}
+            onChange={(event) => {
+              setPriorityFilter(event.target.value);
+              setCursors([]);
+            }}
+            className="block h-9 w-full rounded-lg border bg-card px-2"
+          >
+            <option value="">All priorities</option>
+            <option value="none">None</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+        </label>
+        {(hasFilters || searchText) && <Button type="button" variant="ghost" onClick={clearFilters}>Clear filters</Button>}
+      </form>
+
       <div className={showBoard ? "space-y-5" : "grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)]"}>
         <section className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 shadow-xs sm:p-5">
           <header className="flex flex-wrap items-start justify-between gap-2">
@@ -156,9 +241,11 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
               <Button variant="outline" onClick={() => tasks.refetch()}>Retry</Button>
             </div>
           )}
-          {!showBoard && taskCount === 0 && (
+          {taskCount === 0 && (hasFilters || !showBoard) && (
             <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-              {mineOnly ? "No tasks assigned to you on this page." : "No tasks on this page."}
+              {hasFilters
+                ? "No tasks match your filters."
+                : mineOnly ? "No tasks assigned to you on this page." : "No tasks on this page."}
             </p>
           )}
           {!showBoard && !!tasks.data?.data.length && (
@@ -317,6 +404,13 @@ export function ProjectTasks({ workspace, project, initialTask }: Props) {
                 <Button variant="outline" onClick={() => states.refetch()}>Retry statuses</Button>
               </div>
             )}
+            <TaskComments
+              key={current.id}
+              workspace={workspace}
+              projectId={project.id}
+              taskId={current.id}
+              currentUserId={profile.data?.id}
+            />
           </section>
         )}
         {taskId && current && editing && states.data && (
