@@ -24,6 +24,6 @@ export default function DashboardLayout({
   }, [router]);
 
   return <div>
-     <Link href={"/dashboard/profile"}>Profile</Link>
+     <Link href="/profile">Profile</Link>
     {children}</div>;
 }
