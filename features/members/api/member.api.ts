@@ -49,3 +49,37 @@ export async function deleteMember(
     `/workspaces/${workspaceSlug}/members/${userId}`
   );
 }
+
+export async function acceptInvitation(token: string) {
+  const { data } = await api.post(
+    `/invites/${encodeURIComponent(token)}/accept`
+  );
+
+  return data;
+}
+
+export type InviteDetails = {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: "admin" | "member" | "guest";
+  expires_at: string;
+  workspace: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  invited_by: {
+    id: string;
+    display_name: string;
+    email: string;
+  };
+};
+
+export async function getInvitation(token: string) {
+  const { data } = await api.get<InviteDetails>(
+    `/invites/${encodeURIComponent(token)}`
+  );
+
+  return data;
+}

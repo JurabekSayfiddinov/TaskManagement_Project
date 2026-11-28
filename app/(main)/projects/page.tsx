@@ -138,7 +138,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -156,7 +156,7 @@ export default function ProjectsPage() {
         />
       </div>
 
-      {/* Search */}
+
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
 
@@ -168,7 +168,7 @@ export default function ProjectsPage() {
         />
       </div>
 
-      {/* Projects */}
+
       {projects.length === 0 ? (
         <div className="flex min-h-80 flex-col items-center justify-center rounded-xl border border-dashed bg-card p-8 text-center">
           <div className="mb-4 flex size-14 items-center justify-center rounded-xl bg-accent text-primary">

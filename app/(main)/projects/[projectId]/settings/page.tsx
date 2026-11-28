@@ -1,21 +1,50 @@
 
+"use client";
+
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { StateManagement } from
-  "@/features/states/components/state-management";
+import { useWorkspace } from "@/features/workspaces/context/workspace-context";
 
-import { LabelManagement } from
-  "@/features/labels/components/label-management";
+import { StateManagement } from "@/features/states/components/state-management";
 
-interface Props {
-  params: Promise<{ projectId: string }>;
-}
+import { LabelManagement } from "@/features/labels/components/label-management";
 
-export default async function ProjectSettingsPage({
-  params,
-}: Props) {
-  const { projectId } = await params;
+export default function ProjectSettingsPage() {
+  const { projectId } = useParams<{ projectId: string }>();
+
+  const {
+    workspaceSlug,
+    isPending,
+    isError,
+  } = useWorkspace();
+
+  if (isPending) {
+    return (
+      <div className="animate-pulse space-y-4">
+        <div className="h-8 w-48 rounded bg-muted" />
+        <div className="h-48 rounded-xl bg-muted" />
+        <div className="h-48 rounded-xl bg-muted" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border bg-card p-10 text-center text-red-600">
+        Failed to load workspace.
+      </div>
+    );
+  }
+
+  if (!workspaceSlug || !projectId) {
+    return (
+      <div className="rounded-xl border bg-card p-10 text-center text-muted-foreground">
+        Select a workspace and project first.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -37,7 +66,11 @@ export default async function ProjectSettingsPage({
         </p>
       </div>
 
-      <StateManagement key={`states-${projectId}`} />
+      <StateManagement
+        key={`states-${workspaceSlug}-${projectId}`}
+        workspaceSlug={workspaceSlug}
+        projectId={projectId}
+      />
 
       <LabelManagement key={`labels-${projectId}`} />
     </div>
